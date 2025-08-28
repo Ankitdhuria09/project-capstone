@@ -1,0 +1,20 @@
+:root {
+  --color-primary: hsl(220, 90%, 56%);
+  --color-secondary: hsl(250, 60%, 60%);
+
+  /* Financial Indicators */
+  --color-wealth: hsl(150, 60%, 40%);
+  --color-success: hsl(145, 70%, 45%);
+  --color-warning: hsl(40, 90%, 50%);
+  --color-expense: hsl(0, 80%, 55%);
+
+  /* Gradients */
+  --gradient-wealth: linear-gradient(135deg, hsl(150, 70%, 45%), hsl(200, 80%, 50%));
+  --gradient-premium: linear-gradient(135deg, hsl(260, 70%, 55%), hsl(300, 60%, 50%));
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: hsl(0, 0%, 98%);
+  color: hsl(210, 15%, 15%);
+}
