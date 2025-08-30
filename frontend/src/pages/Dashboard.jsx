@@ -1,21 +1,78 @@
 import React, { useEffect, useState } from "react";
-import api from "../api";
-import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import AnalyticsPage from "./Analytics";
+import api from "../lib/api";
+import { motion } from "framer-motion";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+const wiseTips = [
+  "Always pay yourself first—save at least 20% of your income before spending on anything else.",
+  "Track every expense to uncover hidden leaks in your budget.",
+  "Build an emergency fund that covers at least 6 months of living expenses.",
+  "Avoid impulse purchases by waiting 24 hours before buying.",
+  "Invest early—compound interest is your strongest ally.",
+  "Review your subscriptions and cancel those you don’t use.",
+  "Don’t borrow for depreciating assets; avoid bad debt.",
+  "Set clear financial goals and review your progress each month.",
+  "Diversify your investments to balance risk and reward.",
+  "Shop with a list to avoid unnecessary spending.",
+  "Automate your savings and investments to stay consistent.",
+  "Negotiate bills and ask for better deals wherever possible.",
+  "Monitor your credit score and work to improve it.",
+  "Plan major expenses ahead to avoid straining your budget.",
+  "Reinvest dividends and returns for faster growth.",
+  "Distinguish between wants and needs before making purchases.",
+  "Review your insurance coverage annually.",
+  "Keep learning about personal finance—the rules keep evolving.",
+  "Use cashback and reward points wisely, not as justification for spending.",
+  "Avoid lifestyle inflation—raise your saving rate as your income grows."
+];
 
 function Dashboard() {
   const [transactions, setTransactions] = useState([]);
+  const [budgets, setBudgets] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchTransactions();
+    fetchDashboardData();
   }, []);
 
-  const fetchTransactions = async () => {
-    const res = await api.get("/transactions");
-    setTransactions(res.data);
-  };
+  const fetchDashboardData = async () => {
+    try {
+      const [transRes, budgetRes, goalRes] = await Promise.all([
+        api.get("/transactions"),
+        api.get("/budgets"),
+        api.get("/goals"),
+      ]);
 
-  // 🔽 Calculate totals
+      setTransactions(transRes.data);
+      setBudgets(budgetRes.data);
+      setGoals(goalRes.data);
+    } catch (err) {
+      setError("Failed to load dashboard data");
+      console.error("Dashboard error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const [currentTip, setCurrentTip] = useState("");
+  
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * wiseTips.length);
+    setCurrentTip(wiseTips[randomIndex]);
+  }, []);
+  // Totals
   const income = transactions
     .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + Number(t.amount), 0);
@@ -26,20 +83,17 @@ function Dashboard() {
 
   const balance = income - expenses;
 
-  // 🔽 Last 5 transactions
-  const recent = [...transactions]
+  // Recent transactions
+  const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
 
-  // 🔽 Chart data
+  // Chart data
   const chartData = [
-    { name: "Income", value: income },
-    { name: "Expenses", value: expenses },
+    { name: "Income", value: income, color: "#10B981" },
+    { name: "Expenses", value: expenses, color: "#EF4444" },
   ];
 
-  const COLORS = ["#4CAF50", "#F44336"]; // Green = income, Red = expenses
-
-  // 🔽 Category-wise chart
   const categoryTotals = transactions.reduce((acc, t) => {
     if (t.type === "expense") {
       acc[t.category] = (acc[t.category] || 0) + Number(t.amount);
@@ -52,117 +106,225 @@ function Dashboard() {
     value,
   }));
 
-  const CATEGORY_COLORS = [
-    "#FF9800", // Orange
-    "#3F51B5", // Indigo
-    "#009688", // Teal
-    "#E91E63", // Pink
-    "#9C27B0", // Purple
-    "#795548", // Brown
-  ];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        {error}
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h2>Dashboard</h2>
-        <AnalyticsPage />
-      {/* Wise Tip of the Day */}
-      <div
-        style={{
-          padding: "15px",
-          background: "#e3f2fd",
-          border: "1px solid #90caf9",
-          borderRadius: "8px",
-          marginBottom: "20px",
-        }}
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div
+        className="bg-white rounded-xl shadow-sm p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
       >
-        <h3>💡 Wise Tip of the Day</h3>
-        <p>
-          Always pay yourself first—save at least 20% of your income before you
-          spend on anything else. Small savings today grow into wealth tomorrow.
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600">
+          Welcome back! Here's your financial overview.
         </p>
-      </div>
+      </motion.div>
+
+      {/* Wise Tip */}
+      <motion.div
+        className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
+        <div className="flex items-start">
+          <span className="text-2xl">💡</span>
+          <div className="ml-3">
+            <h3 className="text-lg font-semibold text-blue-900">
+              Wise Tip:-
+            </h3>
+            <p className="text-blue-700 mt-1">
+              {currentTip}
+            </p>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Summary Cards */}
-      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-        <div style={{ padding: "15px", border: "1px solid #ccc" }}>
-          <h3>Total Income</h3>
-          <p>₹{income}</p>
-        </div>
-        <div style={{ padding: "15px", border: "1px solid #ccc" }}>
-          <h3>Total Expenses</h3>
-          <p>₹{expenses}</p>
-        </div>
-        <div style={{ padding: "15px", border: "1px solid #ccc" }}>
-          <h3>Balance</h3>
-          <p>₹{balance}</p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[ 
+          { label: "Total Income", value: income, color: "green", icon: "💰" },
+          { label: "Total Expenses", value: expenses, color: "red", icon: "💸" },
+          {
+            label: "Net Balance",
+            value: balance,
+            color: balance >= 0 ? "blue" : "yellow",
+            icon: balance >= 0 ? "📊" : "⚠️",
+          },
+        ].map((card, i) => (
+          <motion.div
+            key={i}
+            className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:-translate-y-1 transition"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 + i * 0.1 }}
+          >
+            <div className="flex items-center">
+              <div
+                className={`w-10 h-10 bg-${card.color}-100 rounded-full flex items-center justify-center`}
+              >
+                <span className={`text-${card.color}-600 text-lg`}>
+                  {card.icon}
+                </span>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">
+                  {card.label}
+                </p>
+                <p
+                  className={`text-2xl font-bold text-${card.color}-600`}
+                >
+                  ₹{card.value.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Pie Chart Income vs Expense */}
-      <h3>Income vs Expenses</h3>
-      <PieChart width={400} height={300}>
-        <Pie
-          data={chartData}
-          cx="50%"
-          cy="50%"
-          outerRadius={100}
-          dataKey="value"
-          label
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Income vs Expenses */}
+        <motion.div
+          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:-translate-y-1 transition"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
         >
-          {chartData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index]} />
-          ))}
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Income vs Expenses
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                outerRadius={90}
+                dataKey="value"
+                label={({ name, value }) => `${name}: ₹${value.toLocaleString()}`}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={index} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </motion.div>
 
-      {/* Category-wise Pie Chart */}
-      <h3>Expenses by Category</h3>
-      <PieChart width={400} height={300}>
-        <Pie
-          data={categoryData}
-          cx="50%"
-          cy="50%"
-          outerRadius={100}
-          dataKey="value"
-          label
+        {/* Category-wise Expenses */}
+        <motion.div
+          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:-translate-y-1 transition"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
         >
-          {categoryData.map((entry, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
-            />
-          ))}
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Expenses by Category
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={categoryData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
 
       {/* Recent Transactions */}
-      <h3>Recent Transactions</h3>
-      <table border="1" cellPadding="8" style={{ marginTop: "10px", width: "100%" }}>
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Date</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {recent.map((t) => (
-            <tr key={t._id}>
-              <td>{t.type}</td>
-              <td>{t.category}</td>
-              <td>{t.amount}</td>
-              <td>{new Date(t.date).toLocaleDateString()}</td>
-              <td>{t.notes}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <motion.div
+        className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:-translate-y-1 transition"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.6 }}
+      >
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Recent Transactions
+        </h3>
+        {recentTransactions.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  {["Description", "Category", "Amount", "Date", "Type"].map(
+                    (head, i) => (
+                      <th
+                        key={i}
+                        className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        {head}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {recentTransactions.map((transaction) => (
+                  <tr key={transaction._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      {transaction.description}
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">
+                      {transaction.category}
+                    </td>
+                    <td className="px-6 py-4 font-medium">
+                      <span
+                        className={
+                          transaction.type === "income"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {transaction.type === "income" ? "+" : "-"}₹
+                        {transaction.amount.toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">
+                      {new Date(transaction.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          transaction.type === "income"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {transaction.type}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-gray-500">
+            No transactions yet. Start by adding your first transaction!
+          </p>
+        )}
+      </motion.div>
     </div>
   );
 }
