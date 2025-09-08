@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../lib/api";
-import { defaultCategories } from "../utlis/categories";
+import { defaultCategories } from "../utils/categories";
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);

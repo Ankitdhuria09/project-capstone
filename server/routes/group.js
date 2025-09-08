@@ -4,39 +4,7 @@ import Group from "../models/Group.js";
 
 const router = express.Router();
 
-// GET /api/groups
-router.get("/", async (req, res) => {
-  try {
-    const groups = await Group.find().sort({ createdAt: -1 }).lean();
-    res.json(groups);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
-
-// POST /api/groups  { name, members: [string] }
-// POST /api/groups  { name, description, members[] }
-router.post("/", async (req, res) => {
-  try {
-    const { name, members } = req.body;
-    if (!name || !members || !members.length) {
-      return res.status(400).json({ message: "name and members are required" });
-    }
-
-    const group = new Group({
-      name,
-      members,
-      expenses: [],
-    });
-
-    await group.save();
-    res.status(201).json(group);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
-
-// GET /api/groups
+// GET /api/groups - Fetch all groups with calculated balances
 router.get("/", async (req, res) => {
   try {
     const groups = await Group.find().sort({ createdAt: -1 });
@@ -63,17 +31,37 @@ router.get("/", async (req, res) => {
   }
 });
 
+// POST /api/groups - Create new group
+router.post("/", async (req, res) => {
+  try {
+    const { name, members } = req.body;
+    if (!name || !members || !members.length) {
+      return res.status(400).json({ message: "name and members are required" });
+    }
 
-// GET /api/groups/:id
+    const group = new Group({
+      name,
+      members,
+      expenses: [],
+    });
+
+    await group.save();
+    res.status(201).json(group);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+});
+
+// GET /api/groups/:id - Get specific group with recalculated balances
 router.get("/:id", async (req, res) => {
   try {
     const g = await Group.findById(req.params.id);
     if (!g) return res.status(404).json({ message: "Group not found" });
 
-    // 🔹 Reset balances
+    // Reset balances
     g.members.forEach(m => g.balances.set(m, 0));
 
-    // 🔹 Reapply all expenses to recalc balances
+    // Reapply all expenses to recalc balances
     g.expenses.forEach(exp => {
       if (exp.isSettlement) {
         // settlements are payer → receiver
@@ -96,8 +84,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST /api/groups/:id/expenses
-// { description, amount, paidBy, splitBetween[], date }
+// POST /api/groups/:id/expenses - Add expense to group
 router.post("/:id/expenses", async (req, res) => {
   try {
     const g = await Group.findById(req.params.id);
@@ -133,8 +120,7 @@ router.post("/:id/expenses", async (req, res) => {
   }
 });
 
-// POST /api/groups/:id/settle
-// { payer, receiver, amount }
+// POST /api/groups/:id/settle - Settle payment between members
 router.post("/:id/settle", async (req, res) => {
   try {
     const g = await Group.findById(req.params.id);

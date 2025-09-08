@@ -1,4 +1,4 @@
-import { aiParseTransaction } from "../utlis/aiparser";
+import { aiParseTransaction } from "../utils/aiparser";
 import React, { useEffect, useState } from "react";
 import api from "../lib/api";
 import { motion } from "framer-motion";
@@ -15,14 +15,15 @@ import {
   YAxis,
 } from "recharts";
 import Onboarding from "../components/Onboarding";
+
 const wiseTips = [
   "Always pay yourself first—save at least 20% of your income before spending on anything else.",
   "Track every expense to uncover hidden leaks in your budget.",
   "Build an emergency fund that covers at least 6 months of living expenses.",
   "Avoid impulse purchases by waiting 24 hours before buying.",
   "Invest early—compound interest is your strongest ally.",
-  "Review your subscriptions and cancel those you don’t use.",
-  "Don’t borrow for depreciating assets; avoid bad debt.",
+  "Review your subscriptions and cancel those you don't use.",
+  "Don't borrow for depreciating assets; avoid bad debt.",
   "Set clear financial goals and review your progress each month.",
   "Diversify your investments to balance risk and reward.",
   "Shop with a list to avoid unnecessary spending.",
@@ -35,7 +36,7 @@ const wiseTips = [
   "Review your insurance coverage annually.",
   "Keep learning about personal finance—the rules keep evolving.",
   "Use cashback and reward points wisely, not as justification for spending.",
-  "Avoid lifestyle inflation—raise your saving rate as your income grows."
+  "Avoid lifestyle inflation—raise your saving rate as your income grows.",
 ];
 
 function Dashboard() {
@@ -49,13 +50,10 @@ function Dashboard() {
   const [currentTip, setCurrentTip] = useState("");
   const [quickText, setQuickText] = useState("");
   const [parsedTransactions, setParsedTransactions] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(false);
   const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * wiseTips.length);
-    setCurrentTip(wiseTips[randomIndex]);
-  }, []);
+  // Fetch dashboard data
   const fetchDashboardData = async () => {
     try {
       const [transRes, budgetRes, goalRes] = await Promise.all([
@@ -74,7 +72,9 @@ function Dashboard() {
       setLoading(false);
     }
   };
-useEffect(() => {
+
+  // Initialize component
+  useEffect(() => {
     const token = localStorage.getItem("token");
     const onboardingComplete = localStorage.getItem("onboardingComplete");
 
@@ -82,22 +82,20 @@ useEffect(() => {
       setShowOnboarding(true);
     }
     setLoading2(false);
-  }, []);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  useEffect(() => {
+    // Set random tip
     const randomIndex = Math.floor(Math.random() * wiseTips.length);
     setCurrentTip(wiseTips[randomIndex]);
+
+    // Fetch data
+    fetchDashboardData();
   }, []);
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
   };
 
-  // ⬅️ Only conditional logic here (after hooks)
+  // Early returns after hooks
   if (loading2) {
     return <div>Loading...</div>;
   }
@@ -106,7 +104,7 @@ useEffect(() => {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  // Totals
+  // Calculations
   const income = transactions
     .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + Number(t.amount), 0);
@@ -139,6 +137,49 @@ useEffect(() => {
     name: key,
     value,
   }));
+
+  const postTransaction = async (transaction) => {
+  try {
+    const response = await api.post("/transactions", transaction);
+    return response.data;
+  } catch (error) {
+    console.error("Error saving transaction:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+  // Handle AI parsing
+
+  const handleQuickAdd = async () => {
+    if (!quickText.trim()) return;
+    if (!API_KEY) {
+      alert(
+        "API key not configured. Please add VITE_OPENROUTER_API_KEY to your environment variables."
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const parsed = await aiParseTransaction(quickText, API_KEY);
+      if (!parsed) {
+        alert("Could not parse transaction. Please try rephrasing your input.");
+        return;
+      }
+      await postTransaction(parsed);
+      setParsedTransactions([parsed, ...parsedTransactions]);
+      setQuickText("");
+      alert("Transaction added successfully!");
+    } catch (err) {
+      console.error("Error:", err);
+      alert(
+        err.message || "Failed to add transaction. See console for details."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -181,76 +222,85 @@ useEffect(() => {
         <div className="flex items-start">
           <span className="text-2xl">💡</span>
           <div className="ml-3">
-            <h3 className="text-lg font-semibold text-blue-900">
-              Wise Tip:-
-            </h3>
-            <p className="text-blue-700 mt-1">
-              {currentTip}
-            </p>
+            <h3 className="text-lg font-semibold text-blue-900">Wise Tip:-</h3>
+            <p className="text-blue-700 mt-1">{currentTip}</p>
           </div>
         </div>
       </motion.div>
-      <motion.div>
+
+      {/* Quick Add Transaction */}
+      <motion.div
+        className="bg-white rounded-xl shadow-sm p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
         <div>
-            <p className="text-xl text-gray-600 mx-auto"> Simply type what you did with your money , Let Wise money organise It</p>
+          <p className="text-xl text-gray-600 mx-auto">
+            {" "}
+            Simply type what you did with your money, Let Wise money organise it
+          </p>
         </div>
         <div>
           <div className="flex gap-2 mt-2">
-  <div>
-  <input
-    type="text"
-    value={quickText}
-    onChange={(e) => setQuickText(e.target.value)}
-    placeholder="E.g. Bought groceries for ₹500"
-    className="w-full border border-gray-300 rounded-lg px-4 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-  />
-  <button
-    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
-    onClick={async () => {
-      if (quickText.trim()) {
-        try {
-          const parsed = await aiParseTransaction(quickText, API_KEY);
-          if (parsed) {
-            setParsedTransactions([parsed, ...parsedTransactions]);
-          } else {
-            alert("Could not parse transaction");
-          }
-        } catch (err) {
-          console.error(err);
-          alert("AI parsing failed");
-        }
-        setQuickText("");
-      }
-    }}
-  >
-    Add
-  </button>
-</div>
+            <div className="flex-1">
+              <input
+                type="text"
+                value={quickText}
+                onChange={(e) => setQuickText(e.target.value)}
+                placeholder="E.g. Bought groceries for ₹500"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onKeyPress={(e) => e.key === "Enter" && handleQuickAdd()}
+              />
+              <button
+                className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                onClick={handleQuickAdd}
+                disabled={isLoading}
+              >
+                {isLoading ? "Adding..." : "Add Transaction"}
+              </button>
+            </div>
+          </div>
 
-</div>
-<div>
-  <h3 className="text-xl font-semibold mt-6 mb-2">Quick Added Transactions (Preview)</h3>
-<ul>
-  {parsedTransactions.map((t) => (
-    <li key={t.id} className="border-b py-2 flex justify-between">
-      <span>{t.description}</span>
-      <span
-        className={t.type === "income" ? "text-green-600" : "text-red-600"}
-      >
-        {t.type === "income" ? "+" : "-"}₹{t.amount} ({t.category})
-      </span>
-    </li>
-  ))}
-</ul>
-
-</div>
-</div>
+          {/* Parsed Transactions Preview */}
+          {parsedTransactions.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-xl font-semibold mb-2">
+                Quick Added Transactions (Preview)
+              </h3>
+              <div className="space-y-2">
+                {parsedTransactions.slice(0, 5).map((t, index) => (
+                  <div
+                    key={index}
+                    className="border-b py-2 flex justify-between"
+                  >
+                    <span>{t.description}</span>
+                    <span
+                      className={
+                        t.type === "income" ? "text-green-600" : "text-red-600"
+                      }
+                    >
+                      {t.type === "income" ? "+" : "-"}₹{t.amount} ({t.category}
+                      )
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </motion.div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[ 
+        {[
           { label: "Total Income", value: income, color: "green", icon: "💰" },
-          { label: "Total Expenses", value: expenses, color: "red", icon: "💸" },
+          {
+            label: "Total Expenses",
+            value: expenses,
+            color: "red",
+            icon: "💸",
+          },
           {
             label: "Net Balance",
             value: balance,
@@ -277,9 +327,7 @@ useEffect(() => {
                 <p className="text-sm font-medium text-gray-600">
                   {card.label}
                 </p>
-                <p
-                  className={`text-2xl font-bold text-${card.color}-600`}
-                >
+                <p className={`text-2xl font-bold text-${card.color}-600`}>
                   ₹{card.value.toLocaleString()}
                 </p>
               </div>
@@ -308,7 +356,9 @@ useEffect(() => {
                 cy="50%"
                 outerRadius={90}
                 dataKey="value"
-                label={({ name, value }) => `${name}: ₹${value.toLocaleString()}`}
+                label={({ name, value }) =>
+                  `${name}: ₹${value.toLocaleString()}`
+                }
               >
                 {chartData.map((entry, index) => (
                   <Cell key={index} fill={entry.color} />

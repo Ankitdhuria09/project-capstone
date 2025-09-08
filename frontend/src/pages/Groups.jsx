@@ -1,5 +1,5 @@
 // src/pages/GroupsPage.jsx
-import React, { use, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import api from "../lib/api";
 
 const inr = (n) =>
@@ -13,12 +13,13 @@ const GroupsPage = () => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const currentUser =
-    localStorage.getItem("userName") ;
+  const currentUser = localStorage.getItem("userName");
+  
   // Create Group modal
   const [showCreate, setShowCreate] = useState(false);
   const [cgName, setCgName] = useState("");
   const [cgMembers, setCgMembers] = useState("");
+  
   // Add Expense modal
   const [showExpense, setShowExpense] = useState(false);
   const [activeGroupId, setActiveGroupId] = useState("");
@@ -27,6 +28,7 @@ const GroupsPage = () => {
   const [exPaidBy, setExPaidBy] = useState("");
   const [exSplitBetween, setExSplitBetween] = useState([]);
   const [exDate, setExDate] = useState(() => new Date().toISOString().slice(0, 10));
+  
   // Settle Up modal
   const [showSettle, setShowSettle] = useState(false);
   const [stlPayer, setStlPayer] = useState("");

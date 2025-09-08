@@ -1,4 +1,8 @@
-export function parseTransactionText(input, userId ) {
+export function parseTransactionText(input, userId) {
+  if (!input?.trim()) {
+    return null;
+  }
+
   const text = input.toLowerCase();
 
   // Extract amount (first number in text)
@@ -12,14 +16,14 @@ export function parseTransactionText(input, userId ) {
   let result = {
     id: Date.now(), // temporary ID
     userId,
-    description: input,
+    description: input.trim(),
     amount,
     category: "general",
     type: "expense", // default assumption
     date: new Date().toISOString()
   };
 
-  // ---- RULES ----
+  // ---- PARSING RULES ----
   if (/salary|earned|credited|received/.test(text)) {
     result.type = "income";
     result.category = "salary";
@@ -45,7 +49,7 @@ export function parseTransactionText(input, userId ) {
     result.category = "rent";
   }
   else if (/invested|stocks|mutual fund|shares|gold/.test(text)) {
-    result.type = "expense"; // fallback
+    result.type = "expense"; // fallback, since schema only supports income/expense
     result.category = "investment";
   }
   else if (/goal|save for|want to buy/.test(text)) {

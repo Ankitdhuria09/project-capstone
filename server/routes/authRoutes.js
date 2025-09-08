@@ -48,12 +48,11 @@ router.post("/login", async (req, res) => {
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const match = await bcrypt.compare(password, user.password);
-    console.log(match);
     if (!match) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
       { id: user._id }, 
-      process.env.JWT_SECRET || "your-secret-key", 
+      process.env.JWT_SECRET , 
       { expiresIn: "7d" }
     );
 
@@ -75,7 +74,7 @@ router.get("/me", async (req, res) => {
     const token = header.startsWith("Bearer ") ? header.slice(7) : null;
     if (!token) return res.status(401).json({ message: "No token provided" });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET );
     const user = await User.findById(decoded.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
