@@ -7,6 +7,7 @@ export default function Sidebar({ onLogout }) {
     { name: "Dashboard", path: "/" },
     { name: "Transactions", path: "/transactions" },
     { name: "Budgets", path: "/budgets" },
+    { name: "Goals", path: "/goals" },
     { name: "Analytics", path: "/analytics" },
     { name: "Investments", path: "/investments" },
     { name: "Groups", path: "/groups" },

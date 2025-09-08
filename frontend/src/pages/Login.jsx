@@ -22,6 +22,8 @@ function LoginPage() {
       const res = await api.post("/auth/login", formData);
       localStorage.setItem("token", res.data.token);
       sessionStorage.setItem("token", res.data.token);
+      localStorage.setItem("userId", res.data.user._id);
+      sessionStorage.setItem("userId", res.data.user._id);
       // Save the username to localStorage
       localStorage.setItem("userName", res.data.user.username);
       navigate("/dashboard");

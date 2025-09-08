@@ -34,8 +34,12 @@ const Budget = () => {
     setError('');
 
     try {
-      await api.post('/budgets', formData);
-      setFormData({ category: '', limit: '' });
+      const payload = { 
+      category: formData.category, 
+      limit: Number(formData.limit) 
+    };
+    await api.post('/budgets', payload);
+    setFormData({ category: '', limit: '' });
       fetchBudgets();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to add budget');
@@ -56,6 +60,7 @@ const Budget = () => {
 
   // Delete budget
   const deleteBudget = async (id) => {
+    console.log("Deleting budget with id:", id);
     if (!confirm('Are you sure you want to delete this budget?')) return;
 
     try {
@@ -183,12 +188,14 @@ const Budget = () => {
                           Edit
                         </button>
                       )}
-                      <button
-                        onClick={() => deleteBudget(budget._id)}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        Delete
-                      </button>
+                      {budget._id && (
+  <button
+    onClick={() => deleteBudget(budget._id)}
+    className="text-red-600 hover:text-red-800 text-sm"
+  >
+    Delete
+  </button>
+)}
                     </div>
                   </div>
 

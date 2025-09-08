@@ -13,8 +13,11 @@ import Goals from "./pages/Goals";
 import Investments from "./pages/Investments";
 import Groups from "./pages/Groups";
 import Analytics from "./pages/Analytics";
+import Onboarding from "./components/Onboarding";
+import { useState, useEffect } from "react";
 
 function App() {
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50">

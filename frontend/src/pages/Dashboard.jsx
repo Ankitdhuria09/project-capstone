@@ -1,3 +1,4 @@
+import { aiParseTransaction } from "../utlis/aiparser";
 import React, { useEffect, useState } from "react";
 import api from "../lib/api";
 import { motion } from "framer-motion";
@@ -13,7 +14,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
+import Onboarding from "../components/Onboarding";
 const wiseTips = [
   "Always pay yourself first—save at least 20% of your income before spending on anything else.",
   "Track every expense to uncover hidden leaks in your budget.",
@@ -43,11 +44,18 @@ function Dashboard() {
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [loading2, setLoading2] = useState(true);
+  const [currentTip, setCurrentTip] = useState("");
+  const [quickText, setQuickText] = useState("");
+  const [parsedTransactions, setParsedTransactions] = useState([]);
+
+  const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
   useEffect(() => {
-    fetchDashboardData();
+    const randomIndex = Math.floor(Math.random() * wiseTips.length);
+    setCurrentTip(wiseTips[randomIndex]);
   }, []);
-
   const fetchDashboardData = async () => {
     try {
       const [transRes, budgetRes, goalRes] = await Promise.all([
@@ -66,12 +74,38 @@ function Dashboard() {
       setLoading(false);
     }
   };
-  const [currentTip, setCurrentTip] = useState("");
-  
+useEffect(() => {
+    const token = localStorage.getItem("token");
+    const onboardingComplete = localStorage.getItem("onboardingComplete");
+
+    if (token && !onboardingComplete) {
+      setShowOnboarding(true);
+    }
+    setLoading2(false);
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * wiseTips.length);
     setCurrentTip(wiseTips[randomIndex]);
   }, []);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
+
+  // ⬅️ Only conditional logic here (after hooks)
+  if (loading2) {
+    return <div>Loading...</div>;
+  }
+
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
+
   // Totals
   const income = transactions
     .filter((t) => t.type === "income")
@@ -156,7 +190,62 @@ function Dashboard() {
           </div>
         </div>
       </motion.div>
+      <motion.div>
+        <div>
+            <p className="text-xl text-gray-600 mx-auto"> Simply type what you did with your money , Let Wise money organise It</p>
+        </div>
+        <div>
+          <div className="flex gap-2 mt-2">
+  <div>
+  <input
+    type="text"
+    value={quickText}
+    onChange={(e) => setQuickText(e.target.value)}
+    placeholder="E.g. Bought groceries for ₹500"
+    className="w-full border border-gray-300 rounded-lg px-4 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button
+    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
+    onClick={async () => {
+      if (quickText.trim()) {
+        try {
+          const parsed = await aiParseTransaction(quickText, API_KEY);
+          if (parsed) {
+            setParsedTransactions([parsed, ...parsedTransactions]);
+          } else {
+            alert("Could not parse transaction");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("AI parsing failed");
+        }
+        setQuickText("");
+      }
+    }}
+  >
+    Add
+  </button>
+</div>
 
+</div>
+<div>
+  <h3 className="text-xl font-semibold mt-6 mb-2">Quick Added Transactions (Preview)</h3>
+<ul>
+  {parsedTransactions.map((t) => (
+    <li key={t.id} className="border-b py-2 flex justify-between">
+      <span>{t.description}</span>
+      <span
+        className={t.type === "income" ? "text-green-600" : "text-red-600"}
+      >
+        {t.type === "income" ? "+" : "-"}₹{t.amount} ({t.category})
+      </span>
+    </li>
+  ))}
+</ul>
+
+</div>
+</div>
+      </motion.div>
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[ 
