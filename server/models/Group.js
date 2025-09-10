@@ -8,7 +8,11 @@ const ExpenseSchema = new mongoose.Schema(
     paidBy: { type: String, required: true },
     splitBetween: [{ type: String, required: true }],
     date: { type: Date, default: Date.now },
-    isSettlement: { type: Boolean, default: false }, // true for settleUp entries
+    isSettlement: { type: Boolean, default: false },
+
+    // ✅ structured settlement fields (no need to parse description)
+    payer: { type: String },
+    receiver: { type: String },
   },
   { _id: true, timestamps: true }
 );
@@ -17,7 +21,7 @@ const GroupSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     members: [{ type: String, required: true }],
-    balances: { type: Map, of: Number, default: {} }, // member -> number
+    balances: { type: Map, of: Number, default: {} }, // member -> balance
     expenses: [ExpenseSchema],
   },
   { timestamps: true }
@@ -30,8 +34,7 @@ GroupSchema.methods.ensureMemberBalances = function () {
   });
 };
 
-// Apply expense to balances using convention:
-// +ve balance => member owes; -ve => member is owed
+// Apply normal expense
 GroupSchema.methods.applyExpenseToBalances = function (expense) {
   const { amount, paidBy, splitBetween } = expense;
   if (!amount || !splitBetween?.length) return;
@@ -39,26 +42,41 @@ GroupSchema.methods.applyExpenseToBalances = function (expense) {
 
   const share = amount / splitBetween.length;
 
-  // Everyone in splitBetween owes their share:
+  // Everyone owes their share
   splitBetween.forEach((m) => {
     this.balances.set(m, (this.balances.get(m) || 0) + share);
   });
 
-  // Payer paid full amount, so reduce their balance by the total paid:
+  // Payer paid full amount
   this.balances.set(paidBy, (this.balances.get(paidBy) || 0) - amount);
 };
 
-// Apply settlement (direct transfer from payer -> receiver)
+// Apply settlement (payer → receiver)
 GroupSchema.methods.applySettlement = function ({ payer, receiver, amount }) {
   this.ensureMemberBalances();
-  const p = this.balances.get(payer) || 0;     // should be positive (owes)
-  const r = this.balances.get(receiver) || 0;  // should be negative (is owed)
 
   const amt = Math.max(0, Number(amount) || 0);
-  if (!amt) return;
+  if (!amt || !payer || !receiver) return;
 
-  this.balances.set(payer, p - amt);
-  this.balances.set(receiver, r + amt);
+  this.balances.set(payer, (this.balances.get(payer) || 0) - amt);
+  this.balances.set(receiver, (this.balances.get(receiver) || 0) + amt);
+};
+
+// ✅ Recalculate balances from scratch
+GroupSchema.methods.recalculateBalances = function () {
+  this.members.forEach((m) => this.balances.set(m, 0));
+
+  this.expenses.forEach((exp) => {
+    if (exp.isSettlement) {
+      this.applySettlement({
+        payer: exp.payer || exp.paidBy,
+        receiver: exp.receiver,
+        amount: exp.amount,
+      });
+    } else {
+      this.applyExpenseToBalances(exp);
+    }
+  });
 };
 
 export default mongoose.model("Group", GroupSchema);

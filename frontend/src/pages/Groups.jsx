@@ -178,14 +178,7 @@ const GroupsPage = () => {
           <div className="text-gray-500 text-sm">Active Groups</div>
           <div className="text-xl font-bold">{groups.length}</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <div className="text-gray-500 text-sm">Total You Owe</div>
-          <div className="text-xl font-bold text-red-700">-{inr(totalYouOwe)}</div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <div className="text-gray-500 text-sm">Total Owed to You</div>
-          <div className="text-xl font-bold text-green-700">{inr(totalOwedToYou)}</div>
-        </div>
+       
       </div>
 
       {/* Groups */}

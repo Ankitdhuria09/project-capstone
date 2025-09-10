@@ -4,27 +4,12 @@ import Group from "../models/Group.js";
 
 const router = express.Router();
 
-// GET /api/groups - Fetch all groups with calculated balances
+// GET /api/groups - Fetch all groups
 router.get("/", async (req, res) => {
   try {
     const groups = await Group.find().sort({ createdAt: -1 });
 
-    for (const g of groups) {
-      g.members.forEach(m => g.balances.set(m, 0));
-      g.expenses.forEach(exp => {
-        if (exp.isSettlement) {
-          const desc = exp.description || "";
-          const amount = exp.amount;
-          if (desc.startsWith("Settlement:")) {
-            const [_, payer, receiver] = desc.split(/[:→]/).map(s => s.trim());
-            g.applySettlement({ payer, receiver, amount });
-          }
-        } else {
-          g.applyExpenseToBalances(exp);
-        }
-      });
-    }
-
+    groups.forEach((g) => g.recalculateBalances());
     res.json(groups);
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -39,44 +24,23 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "name and members are required" });
     }
 
-    const group = new Group({
-      name,
-      members,
-      expenses: [],
-    });
-
+    const group = new Group({ name, members, expenses: [] });
     await group.save();
+
     res.status(201).json(group);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
 });
 
-// GET /api/groups/:id - Get specific group with recalculated balances
+// GET /api/groups/:id - Fetch group with recalculated balances
 router.get("/:id", async (req, res) => {
   try {
     const g = await Group.findById(req.params.id);
     if (!g) return res.status(404).json({ message: "Group not found" });
 
-    // Reset balances
-    g.members.forEach(m => g.balances.set(m, 0));
-
-    // Reapply all expenses to recalc balances
-    g.expenses.forEach(exp => {
-      if (exp.isSettlement) {
-        // settlements are payer → receiver
-        const desc = exp.description || "";
-        const amount = exp.amount;
-        if (desc.startsWith("Settlement:")) {
-          const [_, payer, receiver] = desc.split(/[:→]/).map(s => s.trim());
-          g.applySettlement({ payer, receiver, amount });
-        }
-      } else {
-        g.applyExpenseToBalances(exp);
-      }
-    });
-
-    await g.save(); // optional: persist recalculated balances
+    g.recalculateBalances();
+    await g.save();
 
     res.json(g);
   } catch (e) {
@@ -84,7 +48,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST /api/groups/:id/expenses - Add expense to group
+// POST /api/groups/:id/expenses - Add expense
 router.post("/:id/expenses", async (req, res) => {
   try {
     const g = await Group.findById(req.params.id);
@@ -92,13 +56,19 @@ router.post("/:id/expenses", async (req, res) => {
 
     const { description, amount, paidBy, splitBetween = [], date } = req.body;
     if (!description || !amount || !paidBy || !splitBetween.length) {
-      return res.status(400).json({ message: "description, amount, paidBy, splitBetween are required" });
+      return res.status(400).json({
+        message: "description, amount, paidBy, splitBetween are required",
+      });
     }
 
     // Validate members
-    const invalid = [paidBy, ...splitBetween].filter((m) => !g.members.includes(m));
+    const invalid = [paidBy, ...splitBetween].filter(
+      (m) => !g.members.includes(m)
+    );
     if (invalid.length) {
-      return res.status(400).json({ message: `Unknown member(s): ${invalid.join(", ")}` });
+      return res
+        .status(400)
+        .json({ message: `Unknown member(s): ${invalid.join(", ")}` });
     }
 
     const exp = {
@@ -111,7 +81,7 @@ router.post("/:id/expenses", async (req, res) => {
     };
 
     g.expenses.unshift(exp);
-    g.applyExpenseToBalances(exp);
+    g.recalculateBalances();
     await g.save();
 
     res.status(201).json(g);
@@ -120,7 +90,7 @@ router.post("/:id/expenses", async (req, res) => {
   }
 });
 
-// POST /api/groups/:id/settle - Settle payment between members
+// POST /api/groups/:id/settle - Record settlement
 router.post("/:id/settle", async (req, res) => {
   try {
     const g = await Group.findById(req.params.id);
@@ -128,30 +98,34 @@ router.post("/:id/settle", async (req, res) => {
 
     const { payer, receiver, amount } = req.body;
     if (!payer || !receiver || !amount) {
-      return res.status(400).json({ message: "payer, receiver, amount are required" });
+      return res
+        .status(400)
+        .json({ message: "payer, receiver, amount are required" });
     }
     if (payer === receiver) {
-      return res.status(400).json({ message: "payer and receiver must be different" });
+      return res
+        .status(400)
+        .json({ message: "payer and receiver must be different" });
     }
     if (!g.members.includes(payer) || !g.members.includes(receiver)) {
       return res.status(400).json({ message: "Unknown member(s)" });
     }
 
-    // Record settlement as a special entry (for history)
     const settlement = {
       description: `Settlement: ${payer} → ${receiver}`,
       amount: Number(amount),
       paidBy: payer,
-      splitBetween: [], // not used for settlements
+      splitBetween: [],
       date: new Date(),
       isSettlement: true,
+      payer,
+      receiver,
     };
+
     g.expenses.unshift(settlement);
-
-    // Directly adjust balances
-    g.applySettlement({ payer, receiver, amount: Number(amount) });
-
+    g.recalculateBalances();
     await g.save();
+
     res.status(201).json(g);
   } catch (e) {
     res.status(500).json({ message: e.message });
