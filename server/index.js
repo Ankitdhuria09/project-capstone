@@ -21,7 +21,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "http://localhost:5000",
+      "http://localhost:5000","https://project-capstone-frontend.onrender.com",
       ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
     ],
     credentials: true,
