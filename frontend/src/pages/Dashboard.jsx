@@ -1,5 +1,6 @@
 import { aiParseTransaction } from "../utils/aiparser";
 import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../lib/api";
 import toast from "react-hot-toast";
 import {
@@ -22,6 +23,8 @@ import {
   LightBulbIcon,
   SparklesIcon,
   CreditCardIcon,
+  PlusIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import Onboarding from "../components/Onboarding";
 
@@ -104,7 +107,10 @@ function Dashboard() {
   if (loading2) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+          <p className="text-slate-600 animate-pulse">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -192,71 +198,116 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          <p className="text-slate-600 text-lg animate-pulse">Setting up your dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {/* Welcome Header */}
-      <div className="card-modern p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="card-modern p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden relative"
+      >
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full -translate-y-16 translate-x-16"></div>
+        <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-indigo-400/20 to-blue-500/20 rounded-full translate-y-10 -translate-x-10"></div>
+        
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between">
+          <div className="mb-4 lg:mb-0">
+            <motion.h1 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-2xl lg:text-4xl font-bold text-slate-900 mb-2"
+            >
               Welcome back, {localStorage.getItem("userName") || "User"}! 👋
-            </h1>
-            <p className="text-slate-600 text-lg">
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-slate-600 text-base lg:text-lg"
+            >
               Here's your financial overview for today
-            </p>
+            </motion.p>
           </div>
-          <div className="hidden md:block">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center">
-              <ChartBarIcon className="h-12 w-12 text-white" />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
+            className="hidden lg:block"
+          >
+            <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-xl">
+              <ChartBarIcon className="h-10 w-10 lg:h-12 lg:w-12 text-white" />
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Wise Tip */}
-      <div className="card-modern p-6 bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="card-modern p-6 bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200"
+      >
         <div className="flex items-start space-x-4">
-          <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl">
+          <motion.div 
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.5 }}
+            className="p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex-shrink-0"
+          >
             <LightBulbIcon className="h-6 w-6 text-white" />
-          </div>
-          <div>
+          </motion.div>
+          <div className="flex-1">
             <h3 className="text-lg font-bold text-amber-900 mb-2">💡 Daily Financial Wisdom</h3>
             <p className="text-amber-800 leading-relaxed">{currentTip}</p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Quick Add Transaction */}
-      <div className="card-modern p-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="card-modern p-6 lg:p-8"
+      >
         <div className="flex items-center space-x-3 mb-6">
-          <div className="p-2 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl">
+          <motion.div 
+            whileHover={{ scale: 1.1 }}
+            className="p-2 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl"
+          >
             <SparklesIcon className="h-6 w-6 text-white" />
-          </div>
+          </motion.div>
           <div>
             <h2 className="text-xl font-bold text-slate-900">AI-Powered Quick Add</h2>
             <p className="text-slate-600">Simply describe what you did with your money</p>
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <input
               type="text"
               value={quickText}
               onChange={(e) => setQuickText(e.target.value)}
               placeholder="E.g., 'Bought groceries for ₹500' or 'Received salary ₹50000'"
-              className="input-modern text-lg"
+              className="input-modern text-base lg:text-lg"
               onKeyPress={(e) => e.key === "Enter" && handleQuickAdd()}
             />
           </div>
-          <button
-            className="btn-gradient-success disabled:opacity-50 disabled:cursor-not-allowed"
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="btn-gradient-success disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3"
             onClick={handleQuickAdd}
             disabled={isLoading}
           >
@@ -266,44 +317,57 @@ function Dashboard() {
                 <span>Processing...</span>
               </div>
             ) : (
-              "Add Transaction"
+              <div className="flex items-center space-x-2">
+                <PlusIcon className="h-5 w-5" />
+                <span>Add Transaction</span>
+              </div>
             )}
-          </button>
+          </motion.button>
         </div>
 
-        {parsedTransactions.length > 0 && (
-          <div className="mt-6 p-4 bg-slate-50 rounded-xl">
-            <h3 className="text-lg font-semibold mb-3 text-slate-900">
-              Recently Added (Preview)
-            </h3>
-            <div className="space-y-2">
-              {parsedTransactions.slice(0, 3).map((t, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm"
-                >
-                  <span className="font-medium text-slate-900">{t.description}</span>
-                  <div className="flex items-center space-x-2">
-                    <span
-                      className={`font-bold ${
-                        t.type === "income" ? "text-emerald-600" : "text-red-500"
-                      }`}
-                    >
-                      {t.type === "income" ? "+" : "-"}₹{t.amount}
-                    </span>
-                    <span className="text-sm text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                      {t.category}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+        <AnimatePresence>
+          {parsedTransactions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-6 p-4 bg-slate-50 rounded-xl overflow-hidden"
+            >
+              <h3 className="text-lg font-semibold mb-3 text-slate-900">
+                Recently Added (Preview)
+              </h3>
+              <div className="space-y-2">
+                {parsedTransactions.slice(0, 3).map((t, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm"
+                  >
+                    <span className="font-medium text-slate-900">{t.description}</span>
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`font-bold ${
+                          t.type === "income" ? "text-emerald-600" : "text-red-500"
+                        }`}
+                      >
+                        {t.type === "income" ? "+" : "-"}₹{t.amount}
+                      </span>
+                      <span className="text-sm text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                        {t.category}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
         {[
           { 
             label: "Total Income", 
@@ -329,28 +393,40 @@ function Dashboard() {
         ].map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={i} className="card-modern p-6 hover-lift">
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              whileHover={{ y: -5 }}
+              className="card-modern p-6 hover-lift"
+            >
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-semibold text-slate-600 uppercase tracking-wider">
                     {card.label}
                   </p>
-                  <p className={`text-3xl font-bold text-${card.color}-600 mt-2`}>
-                    ₹{Math.abs(card.value).toLocaleString()}
+                  <p className={`text-2xl lg:text-3xl font-bold text-${card.color}-600 mt-2`}>
+                    {balance < 0 && card.label === "Net Balance" ? "-" : ""}₹{Math.abs(card.value).toLocaleString()}
                   </p>
                 </div>
-                <div className={`p-4 bg-gradient-to-br ${card.gradient} rounded-2xl shadow-lg`}>
-                  <Icon className="h-8 w-8 text-white" />
+                <div className={`p-3 lg:p-4 bg-gradient-to-br ${card.gradient} rounded-2xl shadow-lg`}>
+                  <Icon className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="card-modern p-8 hover-lift">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+          className="card-modern p-6 lg:p-8 hover-lift"
+        >
           <h3 className="text-xl font-bold text-slate-900 mb-6">
             Income vs Expenses
           </h3>
@@ -361,6 +437,7 @@ function Dashboard() {
                 cx="50%"
                 cy="50%"
                 outerRadius={90}
+                innerRadius={40}
                 dataKey="value"
                 label={({ name, value }) =>
                   `${name}: ₹${value.toLocaleString()}`
@@ -374,9 +451,14 @@ function Dashboard() {
               <Legend />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
 
-        <div className="card-modern p-8 hover-lift">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6 }}
+          className="card-modern p-6 lg:p-8 hover-lift"
+        >
           <h3 className="text-xl font-bold text-slate-900 mb-6">
             Expenses by Category
           </h3>
@@ -388,14 +470,26 @@ function Dashboard() {
               <Bar dataKey="value" fill="#3B82F6" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
       </div>
 
       {/* Recent Transactions */}
-      <div className="card-modern p-8 hover-lift">
-        <h3 className="text-xl font-bold text-slate-900 mb-6">
-          Recent Transactions
-        </h3>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="card-modern p-6 lg:p-8 hover-lift"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-slate-900">
+            Recent Transactions
+          </h3>
+          <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium">
+            <span>View all</span>
+            <ArrowRightIcon className="h-4 w-4" />
+          </button>
+        </div>
+        
         {recentTransactions.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -405,7 +499,7 @@ function Dashboard() {
                     (head, i) => (
                       <th
                         key={i}
-                        className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider"
+                        className="px-4 lg:px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider"
                       >
                         {head}
                       </th>
@@ -414,20 +508,23 @@ function Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {recentTransactions.map((transaction) => (
-                  <tr
+                {recentTransactions.map((transaction, index) => (
+                  <motion.tr
                     key={transaction._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
                     className="hover:bg-slate-50 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-slate-900">
+                    <td className="px-4 lg:px-6 py-4 font-medium text-slate-900">
                       {transaction.description}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 lg:px-6 py-4">
                       <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">
                         {transaction.category}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-bold">
+                    <td className="px-4 lg:px-6 py-4 font-bold">
                       <span
                         className={
                           transaction.type === "income"
@@ -439,10 +536,10 @@ function Dashboard() {
                         {transaction.amount.toLocaleString()}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-500">
+                    <td className="px-4 lg:px-6 py-4 text-slate-500">
                       {new Date(transaction.date).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 lg:px-6 py-4">
                       <span
                         className={`px-3 py-1 text-xs font-semibold rounded-full ${
                           transaction.type === "income"
@@ -453,7 +550,7 @@ function Dashboard() {
                         {transaction.type}
                       </span>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
@@ -463,12 +560,15 @@ function Dashboard() {
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CreditCardIcon className="h-8 w-8 text-slate-400" />
             </div>
-            <p className="text-slate-500 text-lg">
+            <p className="text-slate-500 text-lg mb-4">
               No transactions yet. Start by adding your first transaction!
             </p>
+            <button className="btn-gradient-primary">
+              Add Your First Transaction
+            </button>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

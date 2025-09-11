@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import Transaction from "../models/Transaction.js";
 import Budget from "../models/Budget.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
@@ -11,7 +12,8 @@ router.use(authMiddleware);
 // GET all transactions for logged-in user
 router.get("/", async (req, res) => {
   try {
-    const transactions = await Transaction.find({ userId: req.user.id }).sort({ date: -1 });
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const transactions = await Transaction.find({ userId: userId }).sort({ date: -1 });
     res.json(transactions);
   } catch (err) {
     console.error("Error fetching transactions:", err);
@@ -33,8 +35,9 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Amount must be positive" });
     }
 
+    const userId = new mongoose.Types.ObjectId(req.user.id);
     const transaction = new Transaction({ 
-      userId: req.user.id,
+      userId: userId,
       description, 
       amount, 
       category, 
@@ -43,9 +46,9 @@ router.post("/", async (req, res) => {
     await transaction.save();
 
     // Auto-create budget category if it doesn't exist
-    const existingBudget = await Budget.findOne({ userId: req.user.id, category });
+    const existingBudget = await Budget.findOne({ userId: userId, category });
     if (!existingBudget) {
-      await new Budget({ userId: req.user.id, category, limit: 0 }).save();
+      await new Budget({ userId: userId, category, limit: 0 }).save();
     }
 
     res.status(201).json(transaction);

@@ -52,7 +52,7 @@ function SignupPage() {
       localStorage.setItem("userId", res.data.user._id);
       sessionStorage.setItem("userId", res.data.user._id);
       localStorage.setItem("userName", res.data.user.username);
-
+      
       toast.success("Account created successfully! Welcome aboard! 🎉", { id: loadingToast });
       navigate("/dashboard");
     } catch (err) {

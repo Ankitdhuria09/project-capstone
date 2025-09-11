@@ -13,8 +13,9 @@ router.use(authMiddleware);
 router.get("/", async (req, res) => {
   try {
     // 1️⃣ Get all transactions grouped by category for this user
+    const userId = new mongoose.Types.ObjectId(req.user.id);
     const transactionsByCategory = await Transaction.aggregate([
-      { $match: { userId: req.user.id, type: "expense" } },
+      { $match: { userId: userId, type: "expense" } },
       { $group: { _id: "$category", spent: { $sum: "$amount" } } }
     ]);
 
@@ -25,7 +26,7 @@ router.get("/", async (req, res) => {
     });
 
     // 2️⃣ Get all existing budgets for this user
-    const budgets = await Budget.find({ userId: req.user.id });
+    const budgets = await Budget.find({ userId: userId });
 
     // Convert to a map for lookup
     const budgetMap = {};
@@ -75,13 +76,14 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Limit must be non-negative" });
     }
 
+    const userId = new mongoose.Types.ObjectId(req.user.id);
     // Check if budget already exists for this user and category
-    const existingBudget = await Budget.findOne({ userId: req.user.id, category });
+    const existingBudget = await Budget.findOne({ userId: userId, category });
     if (existingBudget) {
       return res.status(200).json(existingBudget); // Return existing instead of error
     }
 
-    const budget = new Budget({ userId: req.user.id, category, limit });
+    const budget = new Budget({ userId: userId, category, limit });
     await budget.save();
     res.status(201).json(budget);
 
@@ -95,8 +97,9 @@ router.post("/", async (req, res) => {
 // PUT update budget
 router.put("/:id", async (req, res) => {
   try {
+    const userId = new mongoose.Types.ObjectId(req.user.id);
     const updated = await Budget.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id }, 
+      { _id: req.params.id, userId: userId }, 
       req.body, 
       { new: true }
     );
@@ -120,9 +123,10 @@ router.delete("/:id", async (req, res) => {
       return res.status(400).json({ error: "Invalid budget ID" });
     }
 
+    const userId = new mongoose.Types.ObjectId(req.user.id);
     const deleted = await Budget.findOneAndDelete({
       _id: req.params.id,
-      userId: req.user.id
+      userId: userId
     });
 
     if (!deleted) {

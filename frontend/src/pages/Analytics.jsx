@@ -305,19 +305,53 @@ export default function AnalyticsPage() {
 }
 
 // Helper Components
-const MetricCard = ({ title, value, color, icon }) => (
-  <div className="bg-white rounded-lg shadow-sm p-6">
-    <div className="flex items-center">
-      <div className={`w-8 h-8 bg-${color}-100 rounded-full flex items-center justify-center`}>
-        <span className={`text-${color}-600 text-lg`}>{icon}</span>
-      </div>
-      <div className="ml-3">
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className={`text-xl font-bold text-${color}-600`}>{typeof value === "number" ? `₹${value.toLocaleString()}` : value}</p>
+const MetricCard = ({ title, value, color, icon }) => {
+  const colorClasses = {
+    green: {
+      bgColor: 'bg-green-100',
+      textColor: 'text-green-600',
+      valueColor: 'text-green-600'
+    },
+    red: {
+      bgColor: 'bg-red-100',
+      textColor: 'text-red-600',
+      valueColor: 'text-red-600'
+    },
+    blue: {
+      bgColor: 'bg-blue-100',
+      textColor: 'text-blue-600',
+      valueColor: 'text-blue-600'
+    },
+    purple: {
+      bgColor: 'bg-purple-100',
+      textColor: 'text-purple-600',
+      valueColor: 'text-purple-600'
+    },
+    yellow: {
+      bgColor: 'bg-yellow-100',
+      textColor: 'text-yellow-600',
+      valueColor: 'text-yellow-600'
+    }
+  };
+
+  const classes = colorClasses[color] || colorClasses.blue;
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="flex items-center">
+        <div className={`w-8 h-8 ${classes.bgColor} rounded-full flex items-center justify-center`}>
+          <span className={`${classes.textColor} text-lg`}>{icon}</span>
+        </div>
+        <div className="ml-3">
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className={`text-xl font-bold ${classes.valueColor}`}>
+            {typeof value === "number" ? `₹${value.toLocaleString()}` : value}
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ChartCard = ({ title, children }) => (
   <div className="bg-white rounded-lg shadow-sm p-6">
