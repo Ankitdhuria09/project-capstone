@@ -1,6 +1,6 @@
 // frontend/components/InvestmentModal.jsx
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../lib/api";
 
 const InvestmentModal = ({ isOpen, onClose, onSaved }) => {
   const [form, setForm] = useState({
@@ -17,7 +17,7 @@ const InvestmentModal = ({ isOpen, onClose, onSaved }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post("http://localhost:5000/api/investments", form);
+    await api.post("/investments", form);
     onSaved();
     onClose();
   };
