@@ -31,7 +31,7 @@ ChartJS.register(
 export default function AnalyticsPage() {
   const [transactions, setTransactions] = useState([]);
   const [budgets, setBudgets] = useState([]);
-  const [selectedRange, setSelectedRange] = useState("month"); // today, week, month, year
+  const [selectedRange, setSelectedRange] = useState("year"); // today, week, month, year
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -43,16 +43,19 @@ export default function AnalyticsPage() {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
+      setError("");
+      
       const [transRes, budgetRes] = await Promise.all([
         api.get("/transactions"),
         api.get("/budgets")
       ]);
+      
       setTransactions(transRes.data || []);
       setBudgets(budgetRes.data || []);
-      setError("");
+      
     } catch (err) {
-      setError("Failed to load analytics data");
       console.error("Analytics error:", err);
+      setError(`Failed to load analytics data: ${err.response?.data?.message || err.message}`);
     } finally {
       setLoading(false);
     }
@@ -61,9 +64,11 @@ export default function AnalyticsPage() {
   // Filter transactions by selected range
   const filteredTransactions = useMemo(() => {
     const now = new Date();
+    
     return transactions.filter((t) => {
       if (!t.date) return false;
       const date = new Date(t.date);
+      
       switch (selectedRange) {
         case "today":
           return date.toDateString() === now.toDateString();

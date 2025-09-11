@@ -43,6 +43,20 @@ function LoginPage() {
       setLoading(false);
     }
   };
+  
+  const demoUsers = [
+    { id: 1, label: "Arjun Patel", email: "arjun.patel@example.com", password: "demo123" },
+    { id: 2, label: "Priya Sharma", email: "priya.sharma@example.com", password: "demo123" },
+    { id: 3, label: "Rahul Gupta", email: "rahul.gupta@example.com", password: "demo123" },
+    { id: 4, label: "Sneha Iyer", email: "sneha.iyer@example.com", password: "demo123" },
+    { id: 5, label: "Vikash Singh", email: "vikash.singh@example.com", password: "demo123" },
+    { id: 6, label: "Demo User", email: "demo1@example.com", password: "demo123" },
+  ];
+
+
+  const handleAutoFill = (user) => {
+    setFormData({ email: user.email, password: user.password });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
@@ -141,6 +155,23 @@ function LoginPage() {
               </p>
             </div>
           </form>
+
+          {/* NEW: Quick Login Section */}
+          <div className="mt-6 border-t pt-4">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Quick Login</h3>
+            <div className="flex gap-2 flex-wrap">
+              {demoUsers.map((user) => (
+                <button
+                  key={user.id}
+                  type="button"
+                  onClick={() => handleAutoFill(user)}
+                  className="px-3 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-sm font-medium"
+                >
+                  {user.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>
