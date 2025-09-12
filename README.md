@@ -4,7 +4,7 @@ A comprehensive full-stack web application for managing personal finances, budge
 
 ## 🚀 Live Demo
 
-**Deployed on Render:** [https://your-frontend-app.onrender.com](https://your-frontend-app.onrender.com)
+**Deployed on Render:** [https://project-capstone-frontend.onrender.com](https://project-capstone-frontend.onrender.com) 
 
 *Experience seamless financial management with cloud-hosted reliability and performance.*
 
@@ -280,3 +280,4 @@ For support, questions, or contributions:
 **Built with ❤️ using modern web technologies, AI assistance, and deployed on Render for reliability and performance.**
 
 *Experience the future of personal finance management today!*
+
