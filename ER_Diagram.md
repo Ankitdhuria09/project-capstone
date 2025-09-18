@@ -6,135 +6,135 @@
                                     BUDGET TRACKER DATABASE SCHEMA
                                            
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            USERS COLLECTION                                                    │
+│                                            USERS COLLECTION                                                 │
 ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│  _id: ObjectId (PK)                                                                                           │
-│  username: String (UNIQUE, REQUIRED)                                                                         │
-│  email: String (UNIQUE, REQUIRED)                                                                            │
-│  password: String (REQUIRED, HASHED)                                                                         │
-│  createdAt: Date                                                                                              │
-│  updatedAt: Date                                                                                              │
-│  preferences: {                                                                                               │
-│    currency: String,                                                                                          │
-│    theme: String                                                                                              │
-│  }                                                                                                            │
+│  _id: ObjectId (PK)                                                                                         │
+│  username: String (UNIQUE, REQUIRED)                                                                        │
+│  email: String (UNIQUE, REQUIRED)                                                                           │
+│  password: String (REQUIRED, HASHED)                                                                        │
+│  createdAt: Date                                                                                            │
+│  updatedAt: Date                                                                                            │
+│  preferences: {                                                                                             │
+│    currency: String,                                                                                        │
+│    theme: String                                                                                            │
+│  }                                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
                                                         │
                                                         │ 1:N
                                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                        TRANSACTIONS COLLECTION                                                │
+│                                        TRANSACTIONS COLLECTION                                              │
 ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│  _id: ObjectId (PK)                                                                                           │
-│  userId: ObjectId (FK → users._id) (REQUIRED, INDEXED)                                                       │
-│  description: String (REQUIRED)                                                                              │
-│  amount: Number (REQUIRED, POSITIVE)                                                                         │
-│  category: String (REQUIRED)                                                                                 │
-│  type: String (ENUM: 'income', 'expense') (REQUIRED)                                                         │
-│  date: Date (REQUIRED, INDEXED)                                                                              │
-│  tags: [String] (OPTIONAL)                                                                                   │
-│  notes: String (OPTIONAL)                                                                                    │
-│  createdAt: Date                                                                                              │
-│  updatedAt: Date                                                                                              │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-                                                        │
-                                                        │ 1:N
-                                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                          BUDGETS COLLECTION                                                   │
-├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│  _id: ObjectId (PK)                                                                                           │
-│  userId: ObjectId (FK → users._id) (REQUIRED, INDEXED)                                                       │
-│  category: String (REQUIRED)                                                                                 │
-│  limit: Number (REQUIRED, POSITIVE)                                                                          │
-│  period: String (ENUM: 'monthly', 'quarterly', 'yearly')                                                     │
-│  startDate: Date (REQUIRED)                                                                                  │
-│  endDate: Date (CALCULATED)                                                                                  │
-│  spent: Number (CALCULATED FROM TRANSACTIONS)                                                                │
-│  remaining: Number (CALCULATED: limit - spent)                                                               │
-│  alertThreshold: Number (DEFAULT: 80)                                                                        │
-│  isActive: Boolean (DEFAULT: true)                                                                           │
-│  createdAt: Date                                                                                              │
-│  updatedAt: Date                                                                                              │
-│                                                                                                               │
-│  INDEX: (userId, category) - UNIQUE COMPOUND INDEX                                                           │
+│  _id: ObjectId (PK)                                                                                         │
+│  userId: ObjectId (FK → users._id) (REQUIRED, INDEXED)                                                      │
+│  description: String (REQUIRED)                                                                             │
+│  amount: Number (REQUIRED, POSITIVE)                                                                        │
+│  category: String (REQUIRED)                                                                                │
+│  type: String (ENUM: 'income', 'expense') (REQUIRED)                                                        │
+│  date: Date (REQUIRED, INDEXED)                                                                             │
+│  tags: [String] (OPTIONAL)                                                                                  │
+│  notes: String (OPTIONAL)                                                                                   │
+│  createdAt: Date                                                                                            │
+│  updatedAt: Date                                                                                            │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
                                                         │
                                                         │ 1:N
                                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                           GOALS COLLECTION                                                    │
+│                                          BUDGETS COLLECTION                                                 │
 ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│  _id: ObjectId (PK)                                                                                           │
-│  userId: ObjectId (FK → users._id) (REQUIRED, INDEXED)                                                       │
-│  name: String (REQUIRED)                                                                                     │
-│  description: String (OPTIONAL)                                                                              │
-│  targetAmount: Number (REQUIRED, POSITIVE)                                                                   │
-│  currentAmount: Number (DEFAULT: 0)                                                                          │
-│  targetDate: Date (OPTIONAL)                                                                                 │
-│  category: String (OPTIONAL)                                                                                 │
-│  priority: String (ENUM: 'low', 'medium', 'high')                                                            │
-│  status: String (ENUM: 'active', 'completed', 'paused')                                                      │
-│  progress: Number (CALCULATED: currentAmount/targetAmount * 100)                                             │
-│  createdAt: Date                                                                                              │
-│  updatedAt: Date                                                                                              │
+│  _id: ObjectId (PK)                                                                                         │
+│  userId: ObjectId (FK → users._id) (REQUIRED, INDEXED)                                                      │
+│  category: String (REQUIRED)                                                                                │
+│  limit: Number (REQUIRED, POSITIVE)                                                                         │
+│  period: String (ENUM: 'monthly', 'quarterly', 'yearly')                                                    │
+│  startDate: Date (REQUIRED)                                                                                 │
+│  endDate: Date (CALCULATED)                                                                                 │
+│  spent: Number (CALCULATED FROM TRANSACTIONS)                                                               │
+│  remaining: Number (CALCULATED: limit - spent)                                                              │
+│  alertThreshold: Number (DEFAULT: 80)                                                                       │
+│  isActive: Boolean (DEFAULT: true)                                                                          │
+│  createdAt: Date                                                                                            │
+│  updatedAt: Date                                                                                            │
+│                                                                                                             │
+│  INDEX: (userId, category) - UNIQUE COMPOUND INDEX                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
                                                         │
                                                         │ 1:N
                                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                       INVESTMENTS COLLECTION                                                  │
+│                                           GOALS COLLECTION                                                  │
 ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│  _id: ObjectId (PK)                                                                                           │
-│  userId: ObjectId (FK → users._id) (REQUIRED, INDEXED)                                                       │
-│  name: String (REQUIRED)                                                                                     │
-│  type: String (ENUM: 'stocks', 'mutual funds', 'crypto') (REQUIRED)                                          │
-│  symbol: String (OPTIONAL)                                                                                   │
-│  units: Number (REQUIRED, POSITIVE)                                                                          │
-│  purchasePrice: Number (REQUIRED, POSITIVE)                                                                  │
-│  currentPrice: Number (DEFAULT: 0, UPDATED FROM APIs)                                                        │
-│  totalInvestment: Number (CALCULATED: units * purchasePrice)                                                 │
-│  currentValue: Number (CALCULATED: units * currentPrice)                                                     │
-│  gainLoss: Number (CALCULATED: currentValue - totalInvestment)                                               │
-│  gainLossPercentage: Number (CALCULATED)                                                                     │
-│  purchaseDate: Date (REQUIRED)                                                                               │
-│  createdAt: Date                                                                                              │
-│  updatedAt: Date                                                                                              │
+│  _id: ObjectId (PK)                                                                                         │
+│  userId: ObjectId (FK → users._id) (REQUIRED, INDEXED)                                                      │
+│  name: String (REQUIRED)                                                                                    │
+│  description: String (OPTIONAL)                                                                             │
+│  targetAmount: Number (REQUIRED, POSITIVE)                                                                  │
+│  currentAmount: Number (DEFAULT: 0)                                                                         │
+│  targetDate: Date (OPTIONAL)                                                                                │
+│  category: String (OPTIONAL)                                                                                │
+│  priority: String (ENUM: 'low', 'medium', 'high')                                                           │
+│  status: String (ENUM: 'active', 'completed', 'paused)                                                      │
+│  progress: Number (CALCULATED: currentAmount/targetAmount * 100)                                            │
+│  createdAt: Date                                                                                            │
+│  updatedAt: Date                                                                                            │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+                                                        │
+                                                        │ 1:N
+                                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       INVESTMENTS COLLECTION                                                │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  _id: ObjectId (PK)                                                                                         │
+│  userId: ObjectId (FK → users._id) (REQUIRED, INDEXED)                                                      │
+│  name: String (REQUIRED)                                                                                    │
+│  type: String (ENUM: 'stocks', 'mutual funds', 'crypto') (REQUIRED)                                         │
+│  symbol: String (OPTIONAL)                                                                                  │
+│  units: Number (REQUIRED, POSITIVE)                                                                         │
+│  purchasePrice: Number (REQUIRED, POSITIVE)                                                                 │
+│  currentPrice: Number (DEFAULT: 0, UPDATED FROM APIs)                                                       │
+│  totalInvestment: Number (CALCULATED: units * purchasePrice)                                                │
+│  currentValue: Number (CALCULATED: units * currentPrice)                                                    │
+│  gainLoss: Number (CALCULATED: currentValue - totalInvestment)                                              │
+│  gainLossPercentage: Number (CALCULATED)                                                                    │
+│  purchaseDate: Date (REQUIRED)                                                                              │
+│  createdAt: Date                                                                                            │
+│  updatedAt: Date                                                                                            │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
                                                         │
                                                         │ M:N
                                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                         GROUPS COLLECTION                                                     │
+│                                         GROUPS COLLECTION                                                   │
 ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│  _id: ObjectId (PK)                                                                                           │
-│  name: String (REQUIRED)                                                                                     │
-│  description: String (OPTIONAL)                                                                              │
-│  members: [String] (REQUIRED, ARRAY OF MEMBER NAMES)                                                         │
-│  createdBy: ObjectId (FK → users._id) (REQUIRED)                                                             │
-│  balances: Map<String, Number> (MEMBER_NAME → BALANCE)                                                       │
-│  expenses: [EMBEDDED EXPENSE DOCUMENTS] {                                                                    │
-│    _id: ObjectId,                                                                                             │
-│    description: String (REQUIRED),                                                                           │
-│    amount: Number (REQUIRED, POSITIVE),                                                                      │
-│    paidBy: String (REQUIRED, MEMBER NAME),                                                                   │
-│    splitBetween: [String] (REQUIRED, MEMBER NAMES),                                                          │
-│    date: Date (DEFAULT: NOW),                                                                                │
-│    isSettlement: Boolean (DEFAULT: false),                                                                   │
-│    payer: String (FOR SETTLEMENTS),                                                                          │
-│    receiver: String (FOR SETTLEMENTS),                                                                       │
-│    createdAt: Date                                                                                            │
-│  }                                                                                                            │
-│  totalExpenses: Number (CALCULATED)                                                                          │
-│  isActive: Boolean (DEFAULT: true)                                                                           │
-│  createdAt: Date                                                                                              │
-│  updatedAt: Date                                                                                              │
-│                                                                                                               │
-│  INDEX: members (ARRAY INDEX FOR MEMBER LOOKUPS)                                                             │
+│  _id: ObjectId (PK)                                                                                         │
+│  name: String (REQUIRED)                                                                                    │
+│  description: String (OPTIONAL)                                                                             │
+│  members: [String] (REQUIRED, ARRAY OF MEMBER NAMES)                                                        │
+│  createdBy: ObjectId (FK → users._id) (REQUIRED)                                                            │
+│  balances: Map<String, Number> (MEMBER_NAME → BALANCE)                                                      │
+│  expenses: [EMBEDDED EXPENSE DOCUMENTS] {                                                                   │
+│    _id: ObjectId,                                                                                           │
+│    description: String (REQUIRED),                                                                          │
+│    amount: Number (REQUIRED, POSITIVE),                                                                     │
+│    paidBy: String (REQUIRED, MEMBER NAME),                                                                  │
+│    splitBetween: [String] (REQUIRED, MEMBER NAMES),                                                         │
+│    date: Date (DEFAULT: NOW),                                                                               │
+│    isSettlement: Boolean (DEFAULT: false),                                                                  │
+│    payer: String (FOR SETTLEMENTS),                                                                         │
+│    receiver: String (FOR SETTLEMENTS),                                                                      │
+│    createdAt: Date                                                                                          │
+│  }                                                                                                          │
+│  totalExpenses: Number (CALCULATED)                                                                         │
+│  isActive: Boolean (DEFAULT: true)                                                                          │
+│  createdAt: Date                                                                                            │
+│  updatedAt: Date                                                                                            │
+│                                                                                                             │
+│  INDEX: members (ARRAY INDEX FOR MEMBER LOOKUPS)                                                            │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
