@@ -28,8 +28,8 @@ function LoginPage() {
       const res = await api.post("/auth/login", formData);
       localStorage.setItem("token", res.data.token);
       sessionStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.user._id);
-      sessionStorage.setItem("userId", res.data.user._id);
+      localStorage.setItem("userId", res.data.user.id);
+      sessionStorage.setItem("userId", res.data.user.id);
       localStorage.setItem("userName", res.data.user.username);
       
       toast.success("Welcome back! 🎉", { id: loadingToast });
